@@ -94,6 +94,16 @@ export default function App() {
 		}
 	}, [weather]);
 
+	function toggleHistory() {
+		setShowHistory((prev) => !prev);
+	}
+
+	function handleSelectHistory(item) {
+		setWeather(item);
+		setDisplayCity(item.address);
+		setShowHistory(false);
+	}
+
 	useEffect(() => {
 		const savedWeather = localStorage.getItem("weather-v2");
 		if (savedWeather) setWeather(JSON.parse(savedWeather));
@@ -110,32 +120,53 @@ export default function App() {
 			className={`min-h-screen max-w-full w-full mx-auto flex flex-col items-center ${bgClass} ${textClass} transition-colors duration-700`}
 		>
 			<button
-				onClick={() => setShowHistory((prev) => !prev)}
-				className="absolute px-4 py-2 font-semibold rounded cursor-pointer top-6 right-6 bg-amber-300 hover:bg-amber-200 text-neutral-950"
+				onClick={toggleHistory}
+				className="absolute px-4 py-2 font-semibold transition rounded cursor-pointer top-6 right-6 bg-amber-300 hover:bg-amber-200 text-neutral-900"
 			>
-				{showHistory ? "Hide History" : "Show History"}
+				History
 			</button>
 
-			{showHistory && (
-				<div className="absolute w-64 p-4 top-16 right-6 bg-white/90 backdrop-blur-md rounded-xl text-neutral-800">
-					<h3 className="mb-2 text-lg font-bold">Recent History</h3>
-					<ul className="flex flex-col gap-2">
-						{history.map((item, index) => (
+			<div
+				className={`fixed top-0 right-0 w-72 h-full bg-white/90 backdrop-blur-lg shadow-lg p-4 overflow-y-auto transform transition-all duration-500 ease-in-out z-50 ${
+					showHistory
+						? "translate-x-0 opacity-100"
+						: "translate-x-full opacity-0"
+				}`}
+			>
+				<div className="flex items-center justify-between mb-4">
+					<h2 className="text-lg font-semibold text-gray-800">
+						Recent History
+					</h2>
+					<button
+						className="px-4 py-2 text-sm font-bold text-gray-600 cursor-pointer hover:text-gray-800"
+						onClick={() => setShowHistory(false)}
+					>
+						X
+					</button>
+				</div>
+
+				{history.length === 0 ? (
+					<p className="text-sm text-gray-500">No history yet</p>
+				) : (
+					<ul>
+						{history.map((item, index) => {
 							<li
 								key={index}
-								onClick={() => {
-									setWeather(item);
-									setDisplayCity(item.address);
-									setShowHistory(false);
-								}}
-								className="p-2 font-semibold capitalize transition-colors rounded cursor-pointer hover:bg-amber-100"
+								onClick={() => handleSelectHistory(item)}
+								className="p-3 transition bg-gray-100 rounded-lg cursor-pointer hover:bg-gray-200"
 							>
-								{item.resolvedAddress}
-							</li>
-						))}
+								<p className="font-medium ">
+									{item.resolvedAddress}
+								</p>
+								<p className="text-sm text-gray-600">
+									{item.currentConditions?.conditions} -{" "}
+									{Math.round(item.currentConditions?.temp)}°C
+								</p>
+							</li>;
+						})}
 					</ul>
-				</div>
-			)}
+				)}
+			</div>
 
 			<WeatherForm
 				getWeather={getWeather}
